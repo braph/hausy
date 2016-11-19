@@ -77,10 +77,7 @@ unsigned int alphex_stoui(const char *alphex);
 char alphex_uitoc(unsigned int i);
 char *alphex_uitos(unsigned int i);
 
-int hw_bitRead(unsigned int n, int bit);
-unsigned int hw_bitSet(unsigned int n, int bit);
-unsigned int hw_bitClear(unsigned int n, int bit);
-unsigned int hw_bitWrite(unsigned int n, int bit, int value);
+unsigned int hausy_parse_id(const char *id);
 
 hausy_bitstorage *hausy_allocate(size_t size);
 
@@ -138,6 +135,11 @@ size_t hausy_parse_timings(
    unsigned long (*get_timings)(size_t pos, void *callback_data),
    void *get_timings_data
 );
+
+int hw_bitRead(unsigned int n, int bit);
+unsigned int hw_bitSet(unsigned int n, int bit);
+unsigned int hw_bitClear(unsigned int n, int bit);
+unsigned int hw_bitWrite(unsigned int n, int bit, int value);
 
 #ifdef __cplusplus
 }

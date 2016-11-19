@@ -310,6 +310,22 @@ unsigned int alphex_stoui(const char *alphex) {
 }
 
 /*
+ * Parse string either as alphex or as int
+ */
+unsigned int hausy_parse_id(const char *id) {
+   if (id[0] == '0' && id[1] == 'a')
+      return alphex_stoui(&(id[2]));
+
+   unsigned int i = 0;
+   unsigned int mul = 1;
+   while (*id) {
+      i += mul * (*id++ - '0');
+      mul *= 10;
+   }
+   return i;
+}
+
+/*
  * Convert first 6 bits of $i to alphex char
  */
 char alphex_uitoc(unsigned int i) {

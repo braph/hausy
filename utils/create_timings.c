@@ -68,16 +68,7 @@ int main(int argc, char **argv) {
       }
       buffer[i] = 0;
 
-      if (buffer[0] == '0' && buffer[1] == 'a') {
-         value = alphex_stoui(&buffer[2]);
-      }
-      else {
-         value = strtoimax(buffer, &endptr, 0);
-         if (*endptr != 0) {
-            printf("invalid value: %s", buffer);
-            return 1;
-         }
-      }
+      value = hausy_parse_id(&buffer[0]);
 
       if (stri >= strlen(*arg)) {
          length = HAUSY_ID_BITLENGTH;
@@ -98,8 +89,8 @@ int main(int argc, char **argv) {
       size_t old_pos = data_pos;
       data_pos = hausy_write_long(data, value, length, data_pos);
 
-      while (old_pos++ < data_pos)
-         printf("%d", hausy_read_bit(data, old_pos));
+      while (old_pos < data_pos)
+         printf("%d", hausy_read_bit(data, old_pos++));
       printf(" ");
    }
 
