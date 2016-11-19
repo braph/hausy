@@ -22,12 +22,12 @@
 
 #include "../hausy.h"
 
-unsigned long pilight_timings_get_callback(
+unsigned long hausy_pilight_timings_get_callback(
    size_t pos,
    void *int_raw_timings
 );
 
-void pilight_timings_set_callback(
+void hausy_pilight_timings_set_callback(
    size_t pos,
    unsigned long timing,
    void *int_raw_timings
@@ -41,8 +41,8 @@ size_t hausy_pilight_create_timings(
 
 size_t hausy_pilight_parse_timings(
    hausy_bitstorage **data,
-   size_t timings_size,
-   int *pilight_raw
+   int *pilight_raw,
+   size_t pilight_raw_len 
 );
 
 #endif

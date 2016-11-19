@@ -22,6 +22,7 @@ extern "C" {
 
 size_t relay_parse_state_inform(
    hausy_bitstorage *data,
+   size_t data_size,
    size_t at,
    hausy_id *systemID,
    hausy_id *unitID,
