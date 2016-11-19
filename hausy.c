@@ -39,8 +39,8 @@ int is_high_pulse(unsigned long pulse) {
 static inline
 int is_footer_pulse(unsigned long pulse) {
    return (
-      pulse <= ((unsigned long) HAUSY_PULSE_FOOTER + HAUSY_PULSE_TOLERANCE) &&
-      pulse >= ((unsigned long) HAUSY_PULSE_FOOTER - HAUSY_PULSE_TOLERANCE)
+      pulse <= ((unsigned long) HAUSY_PULSE_FOOTER + HAUSY_FOOTER_TOLERANCE) &&
+      pulse >= ((unsigned long) HAUSY_PULSE_FOOTER - HAUSY_FOOTER_TOLERANCE)
    );
 }
 
