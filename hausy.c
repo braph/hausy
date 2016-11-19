@@ -344,9 +344,36 @@ char alphex_uitoc(unsigned int i) {
 }
 
 /*
+ * Convert integer to alphex string
+ */
 char *alphex_uitos(unsigned int i) {
+   if (! i) {
+      char *result = malloc(2);
+      result[0] = '0'; result[1] = '\0';
+      return result;
+   }
+
+   int n = sizeof(unsigned int) * CHAR_BIT / HAUSY_ID_BITLENGTH
+         + !!(sizeof(unsigned int) * CHAR_BIT % HAUSY_ID_BITLENGTH);
+   char buff[n];
+   int x = 0;
+
+   while (i && x < n) {
+      buff[x++] = alphex_uitoc(i % 64);
+      i = i / 64;
+   }
+
+   char *result = malloc(1 + x);
+   result[x] = '\0';
+
+   int r = x - 1;
+   int b = 0;
+
+   while (b < x)
+      result[r--] = buff[b++];
+
+   return result;
 }
-*/
 
 /*
  * Helper function for reading single bit of an integer.
