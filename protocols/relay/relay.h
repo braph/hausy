@@ -8,6 +8,7 @@
 
 #define RELAY_CMD_OFF                           0  // '0'
 #define RELAY_CMD_ON                            1  // '1'
+#define RELAY_CMD_TOGGLE                        55 // 'T'
 #define RELAY_CMD_STATE_QUERY                   52 // 'Q'
 
 #define RELAY_CMD_STATE_INFORM                  44 // 'I'
@@ -34,6 +35,12 @@ size_t relay_create_on(
 );
 
 size_t relay_create_off(
+   hausy_bitstorage *data,
+   hausy_id systemID,
+   hausy_id unitID
+);
+
+size_t relay_create_toggle(
    hausy_bitstorage *data,
    hausy_id systemID,
    hausy_id unitID

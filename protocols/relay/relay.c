@@ -42,6 +42,16 @@ size_t relay_create_off
    return hausy_create_command(data, RELAY_PROTOCOL_ID, systemID, unitID, RELAY_CMD_OFF);
 }
 
+size_t relay_create_toggle
+ (
+   hausy_bitstorage *data,
+   hausy_id systemID,
+   hausy_id unitID
+ )
+{
+   return hausy_create_command(data, RELAY_PROTOCOL_ID, systemID, unitID, RELAY_CMD_TOGGLE);
+}
+
 size_t relay_create_state_query
  (
    hausy_bitstorage *data,
