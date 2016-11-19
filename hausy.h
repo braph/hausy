@@ -30,7 +30,7 @@ extern "C" {
 #define HAUSY_PULSE_LOW             300
 #define HAUSY_PULSE_HIGH            900
 #define HAUSY_PULSE_FOOTER          12000
-#define HAUSY_PULSE_TOLERANCE       100
+#define HAUSY_PULSE_TOLERANCE       200
 
 // Identifier used for broadcasting to all units inside a system,
 // or to broadcast to all systems inside a protocol.
