@@ -140,9 +140,9 @@ size_t hausy_rfcontrol_create_compressed_timings
    if (! *buckets)
       return 0;
 
-   *buckets[0] = HAUSY_PULSE_LOW;
-   *buckets[1] = HAUSY_PULSE_HIGH;
-   *buckets[2] = HAUSY_PULSE_FOOTER;
+   (*buckets)[0] = HAUSY_PULSE_LOW;
+   (*buckets)[1] = HAUSY_PULSE_HIGH;
+   (*buckets)[2] = HAUSY_PULSE_FOOTER;
 
    size_t timings_size = hausy_create_timings(
       data,
