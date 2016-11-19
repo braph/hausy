@@ -20,30 +20,6 @@
 #include "hausy.h"
 #include <limits.h> // CHAR_BIT
 
-static inline
-int is_low_pulse(unsigned long pulse) {
-   return (
-      pulse <= ((unsigned long) HAUSY_PULSE_LOW + HAUSY_PULSE_TOLERANCE) &&
-      pulse >= ((unsigned long) HAUSY_PULSE_LOW - HAUSY_PULSE_TOLERANCE)
-   );
-}
-
-static inline
-int is_high_pulse(unsigned long pulse) {
-   return (
-      pulse <= ((unsigned long) HAUSY_PULSE_HIGH + HAUSY_PULSE_TOLERANCE) &&
-      pulse >= ((unsigned long) HAUSY_PULSE_HIGH - HAUSY_PULSE_TOLERANCE)
-   );
-}
-
-static inline
-int is_footer_pulse(unsigned long pulse) {
-   return (
-      pulse <= ((unsigned long) HAUSY_PULSE_FOOTER + HAUSY_FOOTER_TOLERANCE) &&
-      pulse >= ((unsigned long) HAUSY_PULSE_FOOTER - HAUSY_FOOTER_TOLERANCE)
-   );
-}
-
 /*
  * Reads $timings_size timings using the $get_timings callback and
  * stores the result in the newly allocated $data buffer.
@@ -72,10 +48,10 @@ size_t hausy_parse_timings
    if (timings_size % 2) // hausy requests are always of even length
       return 0;
 
-   if (! is_high_pulse(get_timings(timings_size - 2, get_timings_data)))
+   if (! hausy_is_high_pulse(get_timings(timings_size - 2, get_timings_data)))
       return 0;
 
-   if (! is_footer_pulse(get_timings(timings_size - 1, get_timings_data)))
+   if (! hausy_is_footer_pulse(get_timings(timings_size - 1, get_timings_data)))
       return 0;
 
    *data = hausy_allocate((timings_size - 2) / 2);
@@ -87,10 +63,10 @@ size_t hausy_parse_timings
       unsigned long p1 = get_timings(i + 0, get_timings_data);
       unsigned long p2 = get_timings(i + 1, get_timings_data);
 
-      if (is_high_pulse(p1) && is_low_pulse(p2)) {
+      if (hausy_is_high_pulse(p1) && hausy_is_low_pulse(p2)) {
          hausy_write_bit(*data, i/2, 1);
       }
-      else if (is_low_pulse(p1) && is_high_pulse(p2)) {
+      else if (hausy_is_low_pulse(p1) && hausy_is_high_pulse(p2)) {
          hausy_write_bit(*data, i/2, 0);
       }
       else {

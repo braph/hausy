@@ -40,11 +40,36 @@ extern "C" {
 
 // Bitlength of identifiers such as protocolID, systemID,...
 #define HAUSY_ID_BITLENGTH          6 // alphex returns 6bit integer
+#define HAUSY_ID_MAX                ((1 << HAUSY_ID_BITLENGTH) - 1)
 #define HAUSY_BOOL_BITLENGTH        1
 
 typedef unsigned char hausy_id;
 typedef unsigned char hausy_bool;
 typedef unsigned char hausy_bitstorage;
+
+static inline
+int hausy_is_low_pulse(unsigned long pulse) {
+   return (
+      pulse <= ((unsigned long) HAUSY_PULSE_LOW + HAUSY_PULSE_TOLERANCE) &&
+      pulse >= ((unsigned long) HAUSY_PULSE_LOW - HAUSY_PULSE_TOLERANCE)
+   );
+}
+
+static inline
+int hausy_is_high_pulse(unsigned long pulse) {
+   return (
+      pulse <= ((unsigned long) HAUSY_PULSE_HIGH + HAUSY_PULSE_TOLERANCE) &&
+      pulse >= ((unsigned long) HAUSY_PULSE_HIGH - HAUSY_PULSE_TOLERANCE)
+   );
+}
+
+static inline
+int hausy_is_footer_pulse(unsigned long pulse) {
+   return (
+      pulse <= ((unsigned long) HAUSY_PULSE_FOOTER + HAUSY_FOOTER_TOLERANCE) &&
+      pulse >= ((unsigned long) HAUSY_PULSE_FOOTER - HAUSY_FOOTER_TOLERANCE)
+   );
+}
 
 unsigned int alphex_ctoui(char c);
 unsigned int alphex_stoui(const char *alphex);
