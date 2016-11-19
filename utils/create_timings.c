@@ -95,9 +95,15 @@ int main(int argc, char **argv) {
          return 1;
       }
 
+      size_t old_pos = data_pos;
       data_pos = hausy_write_long(data, value, length, data_pos);
+
+      while (old_pos++ < data_pos)
+         printf("%d", hausy_read_bit(data, old_pos));
+      printf(" ");
    }
 
+   printf("\n");
    hausy_create_timings(data, data_pos, print_timing, NULL);
    printf("\n");
 
