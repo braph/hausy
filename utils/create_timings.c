@@ -59,7 +59,6 @@ int main(int argc, char **argv) {
             break;
          }
 
-         printf("%d\n", i);
          if (i >= MAX_INT_DIGITS) {
             printf("Too many digits: %s\n", *arg);
             return 1;
