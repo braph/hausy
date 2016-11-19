@@ -247,7 +247,12 @@ size_t hausy_write_long
 /*
  * Helper function for parsing an incoming command.
  * If $data is NULL return the size that would have been read.
- * Returns position for next read.
+ *
+ * On success:
+ *    Returns position for next read.
+ *
+ * On failure:
+ *    Returns 0.
  */
 size_t hausy_parse_request
  (
@@ -261,6 +266,9 @@ size_t hausy_parse_request
 {
    if (data == NULL)
       return (HAUSY_ID_BITLENGTH * 4);
+
+   if (data_size < (HAUSY_ID_BITLENGTH * 4))
+      return 0;
 
    size_t pos = 0;
    *protocolID = hausy_read_long(data, HAUSY_ID_BITLENGTH, &pos);

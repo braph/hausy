@@ -3,6 +3,7 @@
 size_t relay_parse_state_inform
  (
    hausy_bitstorage *data,
+   size_t data_size,
    size_t at,
    hausy_id *systemID,
    hausy_id *unitID,
@@ -14,6 +15,13 @@ size_t relay_parse_state_inform
              + RELAY_CMD_STATE_INFORM_ARG1_SYSTEM_ID
              + RELAY_CMD_STATE_INFORM_ARG2_UNIT_ID
              + RELAY_CMD_STATE_INFORM_ARG3_STATE;
+
+   if (data_size < at
+         + RELAY_CMD_STATE_INFORM_ARG1_SYSTEM_ID
+         + RELAY_CMD_STATE_INFORM_ARG2_UNIT_ID
+         + RELAY_CMD_STATE_INFORM_ARG3_STATE
+      )
+      return 0;
             
    *systemID = hausy_read_long(data, RELAY_CMD_STATE_INFORM_ARG1_SYSTEM_ID, &at);
    *unitID   = hausy_read_long(data, RELAY_CMD_STATE_INFORM_ARG2_UNIT_ID,   &at);

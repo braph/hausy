@@ -41,8 +41,8 @@ size_t hausy_pilight_create_timings(
 
 size_t hausy_pilight_parse_timings(
    hausy_bitstorage **data,
-   size_t timings_size,
-   int *pilight_raw
+   int *pilight_raw,
+   size_t pilight_raw_len 
 );
 
 #endif
