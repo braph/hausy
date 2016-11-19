@@ -74,6 +74,9 @@ int hausy_is_footer_pulse(unsigned long pulse) {
 unsigned int alphex_ctoui(char c);
 unsigned int alphex_stoui(const char *alphex);
 
+char alphex_uitoc(unsigned int i);
+char *alphex_uitos(unsigned int i);
+
 int hw_bitRead(unsigned int n, int bit);
 unsigned int hw_bitSet(unsigned int n, int bit);
 unsigned int hw_bitClear(unsigned int n, int bit);

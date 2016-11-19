@@ -310,6 +310,29 @@ unsigned int alphex_stoui(const char *alphex) {
 }
 
 /*
+ * Convert first 6 bits of $i to alphex char
+ */
+char alphex_uitoc(unsigned int i) {
+   i = (i & (1U << 6) - 1);
+
+   if (i == 63U)
+      return '@';
+   else if (i == 62U)
+      return '_';
+   else if (i >= 36U)
+      return ('A' + i - 36);
+   else if (i >= 10U)
+      return ('a' + i - 10);
+   else 
+      return ('0' + i);
+}
+
+/*
+char *alphex_uitos(unsigned int i) {
+}
+*/
+
+/*
  * Helper function for reading single bit of an integer.
  * Returns value of bit.
  */
