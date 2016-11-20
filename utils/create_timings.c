@@ -69,6 +69,8 @@ int main(int argc, char **argv) {
       buffer[i] = 0;
 
       value = hausy_parse_id(&buffer[0]);
+      if (value == (unsigned int) -1)
+         value = atoi(&buffer[0]);
 
       if (stri >= strlen(*arg)) {
          length = HAUSY_ID_BITLENGTH;

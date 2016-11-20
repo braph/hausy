@@ -279,6 +279,37 @@ size_t hausy_create_command
    return at;
 }
 
+/*
+ * Parse string either as alphex or as int
+ */
+unsigned int hausy_parse_id(const char *id) {
+   if (id[0] == '0' && id[1] == 'a')
+      return alphex_stoui(&(id[2]));
+
+   return (unsigned int) -1;
+}
+
+/*
+ * Create hausy id from int
+ */
+char *hausy_create_id(unsigned int id) {
+   char *id_str = alphex_uitos(id);
+
+   size_t len = 0;
+   while (id_str[len] != '\0')
+      ++len;
+
+   char *id_with_prefix = malloc(len + 3);
+   id_with_prefix[0] = '0';
+   id_with_prefix[1] = 'a';
+   for (--len; len >= 0; --len)
+      id_with_prefix[len] = id_str[len];
+   id_with_prefix[len + 2] = '\0';
+
+   free(id_str);
+   return id_with_prefix;
+}
+
 /* 
  * Convert "alphex" char (6bit) to integer.
  */
@@ -305,22 +336,6 @@ unsigned int alphex_stoui(const char *alphex) {
    while (*++alphex) {
       i <<= 6;
       i += alphex_ctoui(*alphex);
-   }
-   return i;
-}
-
-/*
- * Parse string either as alphex or as int
- */
-unsigned int hausy_parse_id(const char *id) {
-   if (id[0] == '0' && id[1] == 'a')
-      return alphex_stoui(&(id[2]));
-
-   unsigned int i = 0;
-   unsigned int mul = 1;
-   while (*id) {
-      i += mul * (*id++ - '0');
-      mul *= 10;
    }
    return i;
 }

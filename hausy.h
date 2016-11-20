@@ -77,6 +77,7 @@ char alphex_uitoc(unsigned int i);
 char *alphex_uitos(unsigned int i);
 
 unsigned int hausy_parse_id(const char *id);
+char *hausy_create_id(unsigned int id);
 
 hausy_bitstorage *hausy_allocate(size_t size);
 
