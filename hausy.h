@@ -27,11 +27,10 @@
 extern "C" {
 #endif
 
-#define HAUSY_PULSE_DIV             34
 #define HAUSY_PULSE_LOW             300
 #define HAUSY_PULSE_HIGH            900
 #define HAUSY_PULSE_TOLERANCE       200
-#define HAUSY_PULSE_FOOTER          (HAUSY_PULSE_LOW * HAUSY_PULSE_DIV)
+#define HAUSY_PULSE_FOOTER          12000
 #define HAUSY_FOOTER_TOLERANCE      (HAUSY_PULSE_TOLERANCE * 20)
 
 // Identifier used for broadcasting to all units inside a system,
