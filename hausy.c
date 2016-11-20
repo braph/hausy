@@ -295,16 +295,16 @@ unsigned int hausy_parse_id(const char *id) {
 char *hausy_create_id(unsigned int id) {
    char *id_str = alphex_uitos(id);
 
-   size_t len = 0;
+   int len = 0;
    while (id_str[len] != '\0')
       ++len;
 
    char *id_with_prefix = malloc(len + 3);
    id_with_prefix[0] = '0';
    id_with_prefix[1] = 'a';
-   for (--len; len >= 0; --len)
-      id_with_prefix[len] = id_str[len];
    id_with_prefix[len + 2] = '\0';
+   for (--len; len >= 0; --len)
+      id_with_prefix[2 + len] = id_str[len];
 
    free(id_str);
    return id_with_prefix;

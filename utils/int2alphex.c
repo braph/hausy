@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
    if (argc < 2 || !strcmp(argv[1], "-h") || !strcmp(argv[1], "--help") || !strcmp(argv[1], "help"))
       return printf("Usage: %s <int>\n", argv[0]), 1;
 
-   char *alphex_str = alphex_uitos(atoi(argv[1]));
+   char *alphex_str = hausy_create_id(atoi(argv[1]));
    printf("%s\n", alphex_str);
    free(alphex_str);
 
