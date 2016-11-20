@@ -280,7 +280,13 @@ size_t hausy_create_command
 }
 
 /*
- * Parse string either as alphex or as int
+ * Parse string either as alphex or as int.
+ *
+ * On success:
+ *    Return value of id
+ *
+ * On error:
+ *    return -1
  */
 unsigned int hausy_parse_id(const char *id) {
    if (id[0] == '0' && id[1] == 'a')
@@ -290,7 +296,7 @@ unsigned int hausy_parse_id(const char *id) {
 }
 
 /*
- * Create hausy id from int
+ * Create hausy id (prefixed with "0a") from int
  */
 char *hausy_create_id(unsigned int id) {
    char *id_str = alphex_uitos(id);
