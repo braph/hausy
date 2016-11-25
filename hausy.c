@@ -142,6 +142,25 @@ hausy_bitstorage* hausy_allocate
 }
 
 /*
+ * Copy/slice existing bitstorage
+ */
+hausy_bitstorage* hausy_copy
+ (
+   hausy_bitstorage *data,
+   size_t data_size,
+   size_t start_pos,
+   size_t end_pos
+ )
+{
+   hausy_bitstorage *new_data = hausy_allocate(end_pos - start_pos);
+   while (start_pos <= end_pos) { // can be made faster using direct byte copy!
+      hausy_write_bit(new_data, start_pos, hausy_read_bit(data, start_pos));
+      ++start_pos;
+   }
+   return new_data;
+}
+
+/*
  * Return single bit inside hausy_bitstorage
  */
 int hausy_read_bit

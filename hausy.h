@@ -80,6 +80,12 @@ unsigned int hausy_parse_id(const char *id);
 char *hausy_create_id(unsigned int id);
 
 hausy_bitstorage *hausy_allocate(size_t size);
+hausy_bitstorage* hausy_copy(
+   hausy_bitstorage *data,
+   size_t data_size,
+   size_t start_pos,
+   size_t end_pos
+);
 
 int hausy_read_bit(
    hausy_bitstorage *data,
