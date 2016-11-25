@@ -153,6 +153,9 @@ hausy_bitstorage* hausy_copy
  )
 {
    hausy_bitstorage *new_data = hausy_allocate(end_pos - start_pos);
+   if (! new_data)
+      return NULL;
+
    while (start_pos <= end_pos) { // can be made faster using direct byte copy!
       hausy_write_bit(new_data, start_pos, hausy_read_bit(data, start_pos));
       ++start_pos;
