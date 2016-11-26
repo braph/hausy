@@ -1,3 +1,6 @@
+#ifndef _HAUSY_PROTOCOL_RELAY_C
+#define _HAUSY_PROTOCOL_RELAY_C
+
 #include "relay.h"
 
 size_t relay_parse_state_inform
@@ -92,3 +95,4 @@ size_t relay_create_state_inform
    return at;
 }
 
+#endif // _HAUSY_PROTOCOL_RELAY_C
