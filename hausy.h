@@ -17,8 +17,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef Hausy_h
-#define Hausy_h
+#ifndef _HAUSY_H
+#define _HAUSY_H
 
 #include <stdint.h>
 #include <stdlib.h>

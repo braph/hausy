@@ -17,6 +17,13 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ * Make it possible to directly include the source file.
+ * This is used to address the "libraries in subfolders" problem in arduino-mk.
+ */
+#ifndef _HAUSY_CPP
+#define _HAUSY_CPP
+
 #include "hausy.h"
 #include <limits.h> // CHAR_BIT
 
@@ -454,3 +461,4 @@ unsigned int hw_bitWrite(unsigned int n, int bit, int value) {
    //return (n ^ (-state ^ n) & (1U << bit)); TODO?
 }
 
+#endif // _HAUSY_CPP
