@@ -17,8 +17,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef Hausy_RFControl_h
-#define Hausy_RFControl_h
+#ifndef _HAUSY_RFCONTROL_H
+#define _HAUSY_RFCONTROL_H
 
 #include "../hausy.h"
 
@@ -50,4 +50,4 @@ size_t hausy_rfcontrol_create_compressed_timings(
 }
 #endif
 
-#endif
+#endif // _HAUSY_RFCONTROL_H
