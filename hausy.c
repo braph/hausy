@@ -334,7 +334,7 @@ char *hausy_create_id(unsigned int id) {
    while (id_str[len] != '\0')
       ++len;
 
-   char *id_with_prefix = malloc(len + 3);
+   char *id_with_prefix = (char*) malloc(len + 3);
    id_with_prefix[0] = '0';
    id_with_prefix[1] = 'a';
    id_with_prefix[len + 2] = '\0';
@@ -379,7 +379,7 @@ unsigned int alphex_stoui(const char *alphex) {
  * Convert first 6 bits of $i to alphex char
  */
 char alphex_uitoc(unsigned int i) {
-   i = (i & (1U << 6) - 1);
+   i = (i & (1U << 6)) - 1;
 
    if (i == 63U)
       return '@';
@@ -398,7 +398,7 @@ char alphex_uitoc(unsigned int i) {
  */
 char *alphex_uitos(unsigned int i) {
    if (! i) {
-      char *result = malloc(2);
+      char *result = (char*) malloc(2);
       result[0] = '0'; result[1] = '\0';
       return result;
    }
@@ -413,7 +413,7 @@ char *alphex_uitos(unsigned int i) {
       i = i / 64;
    }
 
-   char *result = malloc(1 + x);
+   char *result = (char*) malloc(1 + x);
    result[x] = '\0';
 
    int r = x - 1;
