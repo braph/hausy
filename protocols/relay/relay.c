@@ -33,7 +33,7 @@ size_t relay_create_toggle
    return hausy_create_request(req, RELAY_PROTOCOL_ID, systemID, unitID, RELAY_CMD_TOGGLE);
 }
 
-size_t relay_create_state_query
+size_t relay_create_query
  (
    hausy_request *req,
    hausy_id systemID,
