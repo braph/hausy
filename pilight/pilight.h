@@ -35,7 +35,6 @@ void hausy_pilight_timings_set_callback(
 
 size_t hausy_pilight_create_timings(
    hausy_request *request,
-   size_t data_size,
    int *pilight_raw
 );
 
