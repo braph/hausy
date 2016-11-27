@@ -17,8 +17,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef Hausy_Pilight_h
-#define Hausy_Pilight_h
+#ifndef _HAUSY_PILIGHT_H
+#define _HAUSY_PILIGHT_H
 
 #include "../hausy.h"
 
@@ -34,13 +34,13 @@ void hausy_pilight_timings_set_callback(
 );
 
 size_t hausy_pilight_create_timings(
-   hausy_bitstorage *data,
+   hausy_request *request,
    size_t data_size,
    int *pilight_raw
 );
 
 size_t hausy_pilight_parse_timings(
-   hausy_bitstorage **data,
+   hausy_request *request,
    int *pilight_raw,
    size_t pilight_raw_len 
 );
