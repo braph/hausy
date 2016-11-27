@@ -83,11 +83,6 @@ int main(int argc, char **argv) {
          }
       }
 
-      if (data_pos + length >= MAX_BITS) {
-         printf("Too many data, max %d bits\n", MAX_BITS);
-         return 1;
-      }
-
       size_t old_pos = data_pos;
       data_pos = hausy_write_32(&req, value, length, data_pos);
 
