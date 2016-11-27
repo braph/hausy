@@ -64,7 +64,7 @@ int hausy_request_require_size
       + !!(needed_bytes % sizeof(hausy_bitstorage));
 
    if (request->bufsize < needed_n_bitstorage) {
-      hausy_bitstorage *new_data = realloc(request->data, sizeof(hausy_bitstorage) * needed_n_bitstorage);
+      hausy_bitstorage *new_data = (hausy_bitstorage*) realloc(request->data, sizeof(hausy_bitstorage) * needed_n_bitstorage);
       if (! new_data)
          return 0;
       request->data = new_data;
