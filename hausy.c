@@ -88,7 +88,7 @@ int hausy_request_fit
       + !!(needed_bytes % sizeof(hausy_bitstorage));
 
    if (needed_n_bitstorage > request->bufsize) {
-      request->data = realloc(request->data, sizeof(hausy_bitstorage) * needed_n_bitstorage);
+      request->data = (hausy_bitstorage*) realloc(request->data, sizeof(hausy_bitstorage) * needed_n_bitstorage);
       request->bufsize = needed_n_bitstorage;
    }
 }
