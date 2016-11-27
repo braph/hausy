@@ -27,21 +27,20 @@ extern "C" {
 #endif
 
 size_t hausy_rfcontrol_parse_timings(
-   hausy_bitstorage **data,
+   hausy_request *request,
    unsigned int *timings,
    unsigned int timings_size,
    unsigned int pulse_length_divider
 );
 
 size_t hausy_rfcontrol_create_timings(
-   hausy_bitstorage *data,
+   hausy_request *request,
    size_t data_size,
    unsigned int *timings
 );
 
 size_t hausy_rfcontrol_create_compressed_timings(
-   hausy_bitstorage *data,
-   size_t data_size,
+   hausy_request *request,
    unsigned long **buckets,
    char *timings
 );

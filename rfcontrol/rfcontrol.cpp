@@ -67,7 +67,7 @@ void hausy_rfcontrol_set_compressed_timings_callback
 
 /*
  * Parses timings of size $timings_size held in $timings and writes
- * the result to newly allocated $data.
+ * the result to $request.
  *
  * On success:
  *    Returns the number of bits written to $data.
@@ -77,7 +77,7 @@ void hausy_rfcontrol_set_compressed_timings_callback
  */
 size_t hausy_rfcontrol_parse_timings
  (
-   hausy_bitstorage **data,
+   hausy_request *request,
    unsigned int *timings,
    unsigned int timings_size,
    unsigned int pulse_length_divider
@@ -87,12 +87,11 @@ size_t hausy_rfcontrol_parse_timings
    param.timings = timings;
    param.pulse_length_divider = pulse_length_divider;
 
-   return hausy_parse_timings(data, timings_size, hausy_rfcontrol_get_timings_callback, &param);
+   return hausy_parse_timings(request, timings_size, hausy_rfcontrol_get_timings_callback, &param);
 }
 
 /*
- * Transforms request held in $data of size $data_size to the
- * RFControl format (int[]).
+ * Transforms $request to the RFControl format (int[]).
  *
  * If $timings is NULL, do nothing but return the number of
  * timings that would have been written to $timings.
@@ -101,25 +100,23 @@ size_t hausy_rfcontrol_parse_timings
  */
 size_t hausy_rfcontrol_create_timings
  (
-   hausy_bitstorage *data,
+   hausy_request *request,
    size_t data_size,
    unsigned int *timings
  )
 {
    if (timings == NULL)
-      return hausy_create_timings(data, data_size, NULL, NULL);
+      return hausy_create_timings(request, NULL, NULL);
 
    return hausy_create_timings(
-      data,
-      data_size,
+      request,
       hausy_rfcontrol_set_timings_callback,
       (void*) timings
    );
 }
 
 /*
- * Transforms request held in $data of size $data_size to the
- * compressed RFControl format (char[]).
+ * Transforms $request to the compressed RFControl format (char[]).
  *
  * It also allocates and fills the needed buckets[] array.
  *
@@ -130,14 +127,13 @@ size_t hausy_rfcontrol_create_timings
  */
 size_t hausy_rfcontrol_create_compressed_timings
  (
-   hausy_bitstorage *data,
-   size_t data_size,
+   hausy_request *request,
    unsigned long **buckets,
    char *timings
  )
 {
    if (timings == NULL)
-      return hausy_create_timings(data, data_size, NULL, NULL) + 1 /*end of string*/;
+      return hausy_create_timings(request, NULL, NULL) + 1 /*end of string*/;
 
    *buckets = (unsigned long *) malloc(sizeof(unsigned long) * 3);
    if (! *buckets)
@@ -148,8 +144,7 @@ size_t hausy_rfcontrol_create_compressed_timings
    (*buckets)[2] = HAUSY_PULSE_FOOTER;
 
    size_t timings_size = hausy_create_timings(
-      data,
-      data_size,
+      request,
       hausy_rfcontrol_set_compressed_timings_callback,
       (void*) timings
    );
