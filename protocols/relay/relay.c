@@ -40,7 +40,7 @@ size_t relay_create_query
    hausy_id unitID
  )
 {
-   return hausy_create_request(req, RELAY_PROTOCOL_ID, systemID, unitID, RELAY_CMD_STATE_QUERY);
+   return hausy_create_request(req, RELAY_PROTOCOL_ID, systemID, unitID, RELAY_CMD_QUERY);
 }
 
 #endif // _HAUSY_PROTOCOL_RELAY_C
