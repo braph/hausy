@@ -23,7 +23,6 @@
 
 #include "../hausy.h"
 
-#define MAX_BITS        1024
 #define MAX_INT_DIGITS  10
 
 void print_timing
@@ -42,7 +41,8 @@ int main(int argc, char **argv) {
       return 1;
    }
 
-   hausy_bitstorage *data = hausy_allocate(MAX_BITS);
+   hausy_request req;
+   hausy_request_init(&req);
    size_t data_pos = 0;
 
    for (char **arg = &argv[1]; *arg; ++arg) {
@@ -89,18 +89,18 @@ int main(int argc, char **argv) {
       }
 
       size_t old_pos = data_pos;
-      data_pos = hausy_write_long(data, value, length, data_pos);
+      data_pos = hausy_write_32(&req, value, length, data_pos);
 
       while (old_pos < data_pos)
-         printf("%d", hausy_read_bit(data, old_pos++));
+         printf("%d", hausy_read_bit(&req, old_pos++));
       printf(" ");
    }
 
    printf("\n");
-   hausy_create_timings(data, data_pos, print_timing, NULL);
+   hausy_create_timings(&req, print_timing, NULL);
    printf("\n");
 
-   free(data);
+   hausy_request_free(&req);
 
    return 0;
 }

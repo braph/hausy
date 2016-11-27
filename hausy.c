@@ -19,36 +19,254 @@
 
 /*
  * Make it possible to directly include the source file.
- * This is used to address the "libraries in subfolders" problem in arduino-mk.
+ * This is used to address the inability of arduino-mk to compile and link
+ * source files in subdirectories.
  */
 #ifndef _HAUSY_CPP
 #define _HAUSY_CPP
 
 #include "hausy.h"
-#include <limits.h> // CHAR_BIT
+
+/*
+ * Initialize hausy_request structure
+ */
+void hausy_request_init
+ (
+   hausy_request *req
+ )
+{
+   req->size = 0;
+   req->bufsize = 0;
+   req->data = NULL;
+}
+
+/*
+ * Ensure that the buffer in $request can hold $size bits.
+ *
+ * On sucess:
+ *    Return 1
+ *
+ * On failure:
+ *    Return 0
+ */
+int hausy_request_require_size
+ (
+   hausy_request *request,
+   size_t size
+ )
+{
+   if (size <= request->size)
+      return 1;
+
+   size_t needed_bytes = getBytesForBits(size);
+   size_t needed_n_bitstorage =
+      needed_bytes / sizeof(hausy_bitstorage)
+      + !!(needed_bytes % sizeof(hausy_bitstorage));
+
+   if (request->bufsize < needed_n_bitstorage) {
+      hausy_bitstorage *new = realloc(request->data, sizeof(hausy_bitstorage) * needed_n_bitstorage);
+      if (! new)
+         return 0;
+      request->data = new;
+      request->bufsize = needed_n_bitstorage;
+   }
+
+   return 1;
+}
+
+/*
+ * Truncate the buffer in $request to minimum size.
+ */
+int hausy_request_fit
+ (
+   hausy_request *request
+ )
+{
+   size_t needed_bytes = getBytesForBits(request->size);
+   size_t needed_n_bitstorage =
+      needed_bytes / sizeof(hausy_bitstorage)
+      + !!(needed_bytes % sizeof(hausy_bitstorage));
+
+   if (needed_n_bitstorage > request->bufsize) {
+      request->data = realloc(request->data, sizeof(hausy_bitstorage) * needed_n_bitstorage);
+      request->bufsize = needed_n_bitstorage;
+   }
+}
+
+/*
+ * Unset an hausy_request.
+ */
+void hausy_request_free
+ (
+   hausy_request *request
+ )
+{
+   if (request->data)
+      free(request->data);
+
+   request->size = 0;
+   request->data = NULL;
+   request->bufsize = 0;
+}
+
+/*
+ * Copies $length bits from $src at $src_start and inserts it into
+ * $dest at $dest_start.
+ *
+ * If $length is 0, copy all available data.
+ *
+ * $src and $dest may be the same hausy_request, in this case this function
+ * behaves like moving the data.
+ *
+ * On success:
+ *    Return 1
+ *
+ * On failure:
+ *    Return 0
+ */
+int hausy_request_copy
+ (
+   hausy_request *src,
+   size_t src_start,
+   size_t length,
+   hausy_request *dest,
+   size_t dest_start
+ )
+{
+   if (src_start + length < src->size)
+      return 0;
+
+   if (length == 0)
+      length = src->size - src_start;
+
+   hausy_request_require_size(dest, dest_start + length);
+
+   /* Moving overlapping sections in the wrong direction will corrupt our data.
+    * Therefore we are checking the start positions of $src and $dest lie. */
+   size_t i;
+   if (src_start < dest_start) {
+      for (i = length - 1; i != (size_t)(-1); --i)
+         hausy_write_bit(dest, dest_start+i, hausy_read_bit(src, src_start+i));
+   }
+   else {
+      for (i = 0; i < length; ++i) {
+         hausy_write_bit(dest, dest_start+i, hausy_read_bit(src, src_start+i));
+      }
+   }
+
+   if (dest_start + length < dest->size) {
+      dest->size = dest_start + length; // update size
+   }
+
+   return 1;
+}
+
+/*
+ * Return single bit inside $request.
+ * Note: There are no checks if the requested pos exceeds the buffer length.
+ */
+int hausy_read_bit
+ (
+   hausy_request *request,
+   size_t pos
+ )
+{
+   size_t byte_pos = pos / (CHAR_BIT * sizeof(hausy_bitstorage));
+   size_t bit_pos  = pos % (CHAR_BIT * sizeof(hausy_bitstorage));
+
+   return hw_bitRead(
+      request->data[byte_pos],
+      bit_pos
+   );
+}
+
+/*
+ * Write single bit inside $request.
+ * Note: there are no checks if the requested pos exceeds the buffer length.
+ */
+void hausy_write_bit
+ (
+   hausy_request *request,
+   size_t pos,
+   int value
+ )
+{
+   size_t byte_pos = pos / (CHAR_BIT * sizeof(hausy_bitstorage));
+   size_t bit_pos  = pos % (CHAR_BIT * sizeof(hausy_bitstorage));
+
+   request->data[byte_pos] = hw_bitWrite(
+      request->data[byte_pos],
+      bit_pos,
+      value 
+   );
+}
+
+/* 
+ * Reads $len bits from $request and saves it in 32bit type $dest.
+ *
+ * On success:
+ *    Return position for the next read.
+ *
+ * On failure:
+ *    Return 0.
+ */
+size_t hausy_read_32
+ (
+   hausy_request *request,
+   uint32_t *dest,
+   uint8_t len,
+   size_t pos
+ )
+{
+   if (pos + len > request->size)
+      return 0;
+
+   *dest = 0;
+   for (; len != (uint8_t)(-1); --len, ++pos)
+      *dest = hw_bitWrite(*dest, len, hausy_read_bit(request, pos));
+
+   return pos;
+}
+
+/*
+ * Pack the first $len bits of 32bit type $src into $request.
+ * $request will be resized if necessary.
+ * Returns the new position for a write.
+ */
+size_t hausy_write_32
+ (
+   hausy_request *request,
+   uint32_t src,
+   uint8_t len,
+   size_t pos
+ )
+{
+   hausy_request_require_size(request, pos + len);
+
+   for (; len != (uint8_t)(-1); --len, ++pos)
+      hausy_write_bit(request, pos, hw_bitRead(src, len));
+
+   return (request->size = pos);
+}
 
 /*
  * Reads $timings_size timings using the $get_timings callback and
- * stores the result in the newly allocated $data buffer.
+ * stores the result in $request.
  *
  * On success:
- *    Returns the number of bits written to $data.
- *    Remember to free $data.
+ *    Returns $request->size.
  *
  * On failure:
- *    Returns 0, $data will be NULL.
- *    You don't need to free $data.
+ *    Returns 0.
  */
 size_t hausy_parse_timings
  (
-   hausy_bitstorage **data,
+   hausy_request *request,
    size_t timings_size,
    unsigned long (*get_timings)(size_t pos, void *get_timings_data),
    void *get_timings_data
  )
 {
-   *data = NULL;
-
    if (timings_size < (2 + 2)) // at least 1 data packet + footer
       return 0;
 
@@ -61,8 +279,7 @@ size_t hausy_parse_timings
    if (! hausy_is_footer_pulse(get_timings(timings_size - 1, get_timings_data)))
       return 0;
 
-   *data = hausy_allocate((timings_size - 2) / 2);
-   if (! *data)
+   if (! hausy_request_require_size(request, ((timings_size - 2) / 2)))
       return 0;
 
    size_t i;
@@ -71,23 +288,23 @@ size_t hausy_parse_timings
       unsigned long p2 = get_timings(i + 1, get_timings_data);
 
       if (hausy_is_high_pulse(p1) && hausy_is_low_pulse(p2)) {
-         hausy_write_bit(*data, i/2, 1);
+         hausy_write_bit(request, i/2, 1);
       }
       else if (hausy_is_low_pulse(p1) && hausy_is_high_pulse(p2)) {
-         hausy_write_bit(*data, i/2, 0);
+         hausy_write_bit(request, i/2, 0);
       }
       else {
-         free(*data);
-         *data = NULL;
+         hausy_request_free(request);
          return 0;
       }
    }
 
-   return ((timings_size - 2 ) / 2);
+   request->size = ((timings_size - 2 ) / 2);
+   return request->size;
 }
 
 /*
- * Translates the bits held in $data of size $data_size using the
+ * Translates the bits held in $request to timings using the
  * set_timings callback.
  *
  * Returns the size of timings written.
@@ -97,18 +314,17 @@ size_t hausy_parse_timings
  */
 size_t hausy_create_timings
  (
-   hausy_bitstorage *data,
-   size_t data_size,
+   hausy_request *request,
    void (*set_timings)(size_t pos, unsigned long timing, void *set_timings_data),
    void *set_timings_data
  )
 {
    if (set_timings == NULL)
-      return (data_size * 2 + 2);
+      return (request->size * 2 + 2);
 
    size_t i;
-   for (i = 0; i < data_size; ++i) {
-      if (hausy_read_bit(data, i)) {
+   for (i = 0; i < request->size; ++i) {
+      if (hausy_read_bit(request, i)) {
          set_timings( ((1+i) * 2 - 2), HAUSY_PULSE_HIGH, set_timings_data );
          set_timings( ((1+i) * 2 - 1), HAUSY_PULSE_LOW,  set_timings_data );
       } else {
@@ -117,195 +333,73 @@ size_t hausy_create_timings
       }
    }
 
-   set_timings( (data_size * 2 + 0), HAUSY_PULSE_HIGH,   set_timings_data );
-   set_timings( (data_size * 2 + 1), HAUSY_PULSE_FOOTER, set_timings_data );
+   set_timings( (request->size * 2 + 0), HAUSY_PULSE_HIGH,   set_timings_data );
+   set_timings( (request->size * 2 + 1), HAUSY_PULSE_FOOTER, set_timings_data );
 
-   return (data_size * 2 + 2);
-}
-
-/*
- * Allocates enough space for holding $data_size bits and returns
- * a pointer the allocated memory.
- *
- * On sucess:
- *    Returns pointer to allocated memory.
- *
- * On failure:
- *    Returns NULL.
- */
-hausy_bitstorage* hausy_allocate
- (
-   size_t data_size
- )
-{
-   size_t needed_bytes = data_size / CHAR_BIT + !!(data_size % CHAR_BIT);
-
-   size_t needed_n_bitstorage =
-      needed_bytes / sizeof(hausy_bitstorage)
-      + !!(needed_bytes % sizeof(hausy_bitstorage))
-      ;
-
-   return (hausy_bitstorage*) malloc(sizeof(hausy_bitstorage) * needed_n_bitstorage);
-}
-
-/*
- * Copy/slice existing bitstorage
- */
-hausy_bitstorage* hausy_copy
- (
-   hausy_bitstorage *data,
-   size_t data_size,
-   size_t start_pos,
-   size_t end_pos
- )
-{
-   hausy_bitstorage *new_data = hausy_allocate(end_pos - start_pos);
-   if (! new_data)
-      return NULL;
-
-   while (start_pos <= end_pos) { // can be made faster using direct byte copy!
-      hausy_write_bit(new_data, start_pos, hausy_read_bit(data, start_pos));
-      ++start_pos;
-   }
-   return new_data;
-}
-
-/*
- * Return single bit inside hausy_bitstorage
- */
-int hausy_read_bit
- (
-   hausy_bitstorage *data,
-   size_t pos
- )
-{
-   size_t byte_pos = pos / (CHAR_BIT * sizeof(hausy_bitstorage));
-   size_t bit_pos  = pos % (CHAR_BIT * sizeof(hausy_bitstorage));
-
-   return hw_bitRead(
-      data[byte_pos],
-      bit_pos
-   );
-}
-
-/*
- * Write single bit inside hausy_bitstorage
- */
-void hausy_write_bit
- (
-   hausy_bitstorage *data,
-   size_t pos,
-   int value
- )
-{
-   size_t byte_pos = pos / (CHAR_BIT * sizeof(hausy_bitstorage));
-   size_t bit_pos  = pos % (CHAR_BIT * sizeof(hausy_bitstorage));
-
-   data[byte_pos] = hw_bitWrite(
-      data[byte_pos],
-      bit_pos,
-      value 
-   );
-}
-
-/* 
- * Reads $len bits from data and returns it as a long type.
- * Returns the value that was read from data and
- * sets $at to the position for the next read.
- */
-unsigned long hausy_read_long
- (
-   hausy_bitstorage *data,
-   size_t len,
-   size_t *at
- )
-{
-   unsigned long rByte = 0;
-
-   size_t i;
-   for (i = 0; i < len; ++i)
-      rByte = hw_bitWrite(rByte, i, hausy_read_bit(data, *at+i));
-
-   *at = *at + len;
-   return rByte;
-}
-
-/*
- * Pack the first $len bits of $long_data into $data.
- * Returns the new position for a write.
- */
-size_t hausy_write_long
- (
-   hausy_bitstorage *data,
-   unsigned long long_data,
-   size_t len,
-   size_t at
- )
-{
-   size_t i;
-   for (i = 0; i < len; ++i)
-      hausy_write_bit(data, at+i, hw_bitRead(long_data, i));
-
-   return (at + len);
+   return (request->size * 2 + 2);
 }
 
 /*
  * Helper function for parsing an incoming command.
- * If $data is NULL return the size that would have been read.
+ * The identifiers are saved to the variables and the extracted data
+ * will be stripped from the request.
  *
  * On success:
- *    Returns position for next read.
+ *    Returns 1.
  *
  * On failure:
  *    Returns 0.
  */
 size_t hausy_parse_request
  (
-   hausy_bitstorage *data,
-   size_t data_size,
+   hausy_request *request,
    hausy_id *protocolID,
    hausy_id *systemID,
    hausy_id *unitID,
    hausy_id *cmdID
  )
 {
-   if (data == NULL)
-      return (HAUSY_ID_BITLENGTH * 4);
-
-   if (data_size < (HAUSY_ID_BITLENGTH * 4))
+   if (request->size < (HAUSY_ID_BITLENGTH * 4))
       return 0;
 
    size_t pos = 0;
-   *protocolID = hausy_read_long(data, HAUSY_ID_BITLENGTH, &pos);
-   *systemID   = hausy_read_long(data, HAUSY_ID_BITLENGTH, &pos);
-   *unitID     = hausy_read_long(data, HAUSY_ID_BITLENGTH, &pos);
-   *cmdID      = hausy_read_long(data, HAUSY_ID_BITLENGTH, &pos);
-   return pos;
+   pos = hausy_read_32(request, (uint32_t*) protocolID, HAUSY_ID_BITLENGTH, pos);
+   pos = hausy_read_32(request, (uint32_t*) systemID,   HAUSY_ID_BITLENGTH, pos);
+   pos = hausy_read_32(request, (uint32_t*) unitID,     HAUSY_ID_BITLENGTH, pos);
+   pos = hausy_read_32(request, (uint32_t*) cmdID,      HAUSY_ID_BITLENGTH, pos);
+
+   hausy_request_copy(request, pos, 0, request, 0);
+   request->size = request->size - pos;
+   hausy_request_fit(request);
+
+   return 1;
 }
 
 /*
- * Helper function for filling a hausy_bitstorage buffer with IDs.
- * If $data is NULL return the size that would have been written.
+ * Helper function for filling a hausy_request with IDs.
+ * If $request is NULL return the size that would have been written.
  * Returns position for next write.
  */
-size_t hausy_create_command
+size_t hausy_create_request
  (
-   hausy_bitstorage *data,
+   hausy_request *request,
    hausy_id protocolID,
    hausy_id systemID,
    hausy_id unitID,
    hausy_id cmdID
  )
 {
-   if (data == NULL)
+   if (request == NULL)
       return (HAUSY_ID_BITLENGTH * 4);
 
-   int at = 0;
-   at = hausy_write_long(data, protocolID, HAUSY_ID_BITLENGTH, at);
-   at = hausy_write_long(data, systemID,   HAUSY_ID_BITLENGTH, at);
-   at = hausy_write_long(data, unitID,     HAUSY_ID_BITLENGTH, at);
-   at = hausy_write_long(data, cmdID,      HAUSY_ID_BITLENGTH, at);
-   return at;
+   hausy_request_require_size(request, HAUSY_ID_BITLENGTH * 4);
+
+   int pos = 0;
+   pos = hausy_write_32(request, protocolID, HAUSY_ID_BITLENGTH, pos);
+   pos = hausy_write_32(request, systemID,   HAUSY_ID_BITLENGTH, pos);
+   pos = hausy_write_32(request, unitID,     HAUSY_ID_BITLENGTH, pos);
+   pos = hausy_write_32(request, cmdID,      HAUSY_ID_BITLENGTH, pos);
+   return pos;
 }
 
 /*
@@ -423,42 +517,6 @@ char *alphex_uitos(unsigned int i) {
       result[r--] = buff[b++];
 
    return result;
-}
-
-/*
- * Helper function for reading single bit of an integer.
- * Returns value of bit.
- */
-int hw_bitRead(unsigned int n, int bit) {
-   return ((n >> (bit + 0)) & 1U);
-}
-
-/*
- * Helper function for setting single bit of an integer.
- * Returns new integer.
- */
-unsigned int hw_bitSet(unsigned int n, int bit) {
-   return (n | 1U << (bit + 0));
-}
-
-/*
- * Helper function for clearing single bit of an integer.
- * Returns new integer.
- */
-unsigned int hw_bitClear(unsigned int n, int bit) {
-   return (n & ~(1U << (bit + 0)));
-}
-
-/*
- * Helper function for writing single bit of an integer.
- * Returns new integer.
- */
-unsigned int hw_bitWrite(unsigned int n, int bit, int value) {
-   if (value)
-      return hw_bitSet(n, bit);
-   else
-      return hw_bitClear(n, bit);
-   //return (n ^ (-state ^ n) & (1U << bit)); TODO?
 }
 
 #endif // _HAUSY_CPP

@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <limits.h> // CHAR_BIT
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,6 +47,82 @@ typedef unsigned char hausy_id;
 typedef unsigned char hausy_bool;
 typedef unsigned char hausy_bitstorage;
 
+struct hausy_request {
+   uint16_t size;    /* holds the request size of data */
+   uint8_t bufsize;  /* holds the number of hausy_bitstorage fields */
+   hausy_bitstorage *data;
+};
+typedef struct hausy_request hausy_request;
+
+unsigned int alphex_ctoui(char c);
+unsigned int alphex_stoui(const char *alphex);
+char alphex_uitoc(unsigned int i);
+char *alphex_uitos(unsigned int i);
+
+unsigned int hausy_parse_id(const char *id);
+char *hausy_create_id(unsigned int id);
+
+void hausy_request_init(hausy_request *request);
+int  hausy_request_require_size(hausy_request *request, size_t size);
+int  hausy_request_fit(hausy_request *request);
+void hausy_request_free(hausy_request *request);
+int  hausy_request_copy(
+   hausy_request *src,
+   size_t src_start,
+   size_t length,
+   hausy_request *dest,
+   size_t dest_start
+);
+
+int hausy_read_bit(hausy_request *request, size_t pos);
+void hausy_write_bit(hausy_request *request, size_t pos, int value);
+
+size_t hausy_read_32(
+   hausy_request *request,
+   uint32_t *dest,
+   uint8_t len,
+   size_t pos
+);
+
+size_t hausy_write_32(
+   hausy_request *request,
+   uint32_t src,
+   uint8_t len,
+   size_t pos
+);
+
+size_t hausy_parse_request(
+   hausy_request *request,
+   hausy_id *protocolID,
+   hausy_id *systemID,
+   hausy_id *unitID,
+   hausy_id *cmdID
+);
+
+size_t hausy_create_request(
+   hausy_request *request,
+   hausy_id protocolID,
+   hausy_id systemID,
+   hausy_id unitID,
+   hausy_id cmdID
+);
+
+size_t hausy_create_timings(
+   hausy_request *request,
+   void (*set_timings)(size_t pos , unsigned long timing, void *callback_data),
+   void *set_timings_data
+);
+
+size_t hausy_parse_timings(
+   hausy_request *request,
+   size_t timings_size,
+   unsigned long (*get_timings)(size_t pos, void *callback_data),
+   void *get_timings_data
+);
+
+/*
+ * Return true if $pulse is a low pulse.
+ */
 static inline
 int hausy_is_low_pulse(unsigned long pulse) {
    return (
@@ -54,6 +131,9 @@ int hausy_is_low_pulse(unsigned long pulse) {
    );
 }
 
+/*
+ * Return true if $pulse is a high pulse.
+ */
 static inline
 int hausy_is_high_pulse(unsigned long pulse) {
    return (
@@ -62,6 +142,9 @@ int hausy_is_high_pulse(unsigned long pulse) {
    );
 }
 
+/*
+ * Return true if $pulse is a footer pulse.
+ */
 static inline
 int hausy_is_footer_pulse(unsigned long pulse) {
    return (
@@ -70,82 +153,53 @@ int hausy_is_footer_pulse(unsigned long pulse) {
    );
 }
 
-unsigned int alphex_ctoui(char c);
-unsigned int alphex_stoui(const char *alphex);
+/*
+ * Helper function for reading single bit of an integer.
+ * Returns value of bit.
+ */
+static inline
+int hw_bitRead(unsigned int n, int bit) {
+   return ((n >> bit) & 1U);
+}
 
-char alphex_uitoc(unsigned int i);
-char *alphex_uitos(unsigned int i);
+/*
+ * Helper function for setting single bit of an integer.
+ * Returns new integer.
+ */
+static inline
+unsigned int hw_bitSet(unsigned int n, int bit) {
+   return (n | 1U << bit);
+}
 
-unsigned int hausy_parse_id(const char *id);
-char *hausy_create_id(unsigned int id);
+/*
+ * Helper function for clearing single bit of an integer.
+ * Returns new integer.
+ */
+static inline
+unsigned int hw_bitClear(unsigned int n, int bit) {
+   return (n & ~(1U << bit));
+}
 
-hausy_bitstorage *hausy_allocate(size_t size);
-hausy_bitstorage* hausy_copy(
-   hausy_bitstorage *data,
-   size_t data_size,
-   size_t start_pos,
-   size_t end_pos
-);
+/*
+ * Helper function for writing single bit of an integer.
+ * Returns new integer.
+ */
+static inline
+unsigned int hw_bitWrite(unsigned int n, int bit, int value) {
+   if (value)
+      return hw_bitSet(n, bit);
+   else
+      return hw_bitClear(n, bit);
+   //return (n ^ (-state ^ n) & (1U << bit)); TODO?
+}
 
-int hausy_read_bit(
-   hausy_bitstorage *data,
-   size_t pos
-);
-
-void hausy_write_bit(
-   hausy_bitstorage *data,
-   size_t pos,
-   int value
-);
-
-unsigned long hausy_read_long(
-   hausy_bitstorage *data,
-   size_t len,
-   size_t *at
-);
-
-size_t hausy_write_long(
-   hausy_bitstorage *data,
-   unsigned long long_data,
-   size_t len,
-   size_t at
-);
-
-size_t hausy_parse_request(
-   hausy_bitstorage *data,
-   size_t data_size,
-   hausy_id *protocolID,
-   hausy_id *systemID,
-   hausy_id *unitID,
-   hausy_id *cmdID
-);
-
-size_t hausy_create_command(
-   hausy_bitstorage *data,
-   hausy_id protocolID,
-   hausy_id systemID,
-   hausy_id unitID,
-   hausy_id cmdID
-);
-
-size_t hausy_create_timings(
-   hausy_bitstorage *data,
-   size_t data_size,
-   void (*set_timings)(size_t pos , unsigned long timing, void *callback_data),
-   void *set_timings_data
-);
-
-size_t hausy_parse_timings(
-   hausy_bitstorage **data,
-   size_t timings_size,
-   unsigned long (*get_timings)(size_t pos, void *callback_data),
-   void *get_timings_data
-);
-
-int hw_bitRead(unsigned int n, int bit);
-unsigned int hw_bitSet(unsigned int n, int bit);
-unsigned int hw_bitClear(unsigned int n, int bit);
-unsigned int hw_bitWrite(unsigned int n, int bit, int value);
+/*
+ * Return the number of bytes that are needed to hold $size bits.
+ */
+static inline
+size_t getBytesForBits(unsigned int size) {
+   return (size / CHAR_BIT + !!(size % CHAR_BIT));
+}
 
 #ifdef __cplusplus
 }
