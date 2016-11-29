@@ -44,7 +44,7 @@ void hausy_request_init
  * Ensure that the buffer in $request can hold $size bits.
  *
  * On sucess:
- *    Return 1
+ *    Return $size
  *
  * On failure:
  *    Return 0
@@ -56,7 +56,7 @@ int hausy_request_require_size
  )
 {
    if (size <= request->size)
-      return 1;
+      return size;
 
    size_t needed_bytes = getBytesForBits(size);
    size_t needed_n_bitstorage =
@@ -71,7 +71,7 @@ int hausy_request_require_size
       request->bufsize = needed_n_bitstorage;
    }
 
-   return 1;
+   return size;
 }
 
 /*
@@ -125,7 +125,7 @@ void hausy_request_free
  * behaves like moving the data.
  *
  * On success:
- *    Return 1
+ *    Return pos for new write on $dest
  *
  * On failure:
  *    Return 0
@@ -145,7 +145,8 @@ int hausy_request_copy
    if (length == 0)
       length = src->size - src_start;
 
-   hausy_request_require_size(dest, dest_start + length);
+   if (! hausy_request_require_size(dest, dest_start + length))
+      return 0;
 
    /* Moving overlapping sections in the wrong direction will corrupt our data.
     * Therefore we are checking the start positions of $src and $dest lie. */
@@ -164,7 +165,7 @@ int hausy_request_copy
       dest->size = dest_start + length; // update size
    }
 
-   return 1;
+   return dest->size;
 }
 
 /*
@@ -237,7 +238,12 @@ size_t hausy_read_32
 /*
  * Pack the first $len bits of 32bit type $src into $request.
  * $request will be resized if necessary.
- * Returns the new position for a write.
+ *
+ * On success:
+ *    Return the new position for a write.
+ *
+ * On error:
+ *    Return 0
  */
 size_t hausy_write_32
  (
@@ -247,7 +253,8 @@ size_t hausy_write_32
    size_t pos
  )
 {
-   hausy_request_require_size(request, pos + len);
+   if (! hausy_request_require_size(request, pos + len))
+      return 0;
 
    for (; len != (uint8_t)(-1); --len, ++pos)
       hausy_write_bit(request, pos, hw_bitRead(src, len));
