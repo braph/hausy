@@ -1,8 +1,33 @@
-#ifndef _HAUSY_PROTOCOL_VOLUME_C
-#define _HAUSY_PROTOCOL_VOLUME_C
+#ifndef _HAUSY_PROTOCOL_VOLUME_H
+#define _HAUSY_PROTOCOL_VOLUME_H
 
-#include "volume.h"
+#include <stdint.h>
+#include "../hausy.h"
 
+#define VOLUME_BIT_LENGTH               7 // 0 - 100
+
+#define VOLUME_PROTOCOL_ID              57 // 'V'
+
+#define VOLUME_CMD_SET                  54 // 'S'
+#define VOLUME_CMD_SET_ARG1_VOLUME      VOLUME_BIT_LENGTH
+
+#define VOLUME_CMD_UP                   56 // 'U'
+#define VOLUME_CMD_UP_ARG1_STEP         VOLUME_BIT_LENGTH
+
+#define VOLUME_CMD_DOWN                 39 // 'D'
+#define VOLUME_CMD_DOWN_ARG1_STEP       VOLUME_BIT_LENGTH
+
+#define VOLUME_CMD_MUTE                 48 // 'M'
+#define VOLUME_CMD_UNMUTE               22 // 'm'
+#define VOLUME_CMD_MUTE_TOGGLE          55 // 'T'
+
+#define VOLUME_CMD_QUERY                52 // 'Q'
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+static inline
 size_t volume_create_set
  (
    hausy_request *request,
@@ -16,6 +41,8 @@ size_t volume_create_set
    at = hausy_write_32(request, volume, VOLUME_CMD_SET_ARG1_VOLUME, at);
    return at;
 }
+
+static inline
 size_t volume_parse_set
  (
    hausy_request *request,
@@ -25,6 +52,7 @@ size_t volume_parse_set
    return hausy_read_32(request, (uint32_t*) volume, VOLUME_CMD_SET_ARG1_VOLUME, 0);
 }
 
+static inline
 size_t volume_create_up
  (
    hausy_request *request,
@@ -38,6 +66,8 @@ size_t volume_create_up
    at = hausy_write_32(request, step, VOLUME_CMD_UP_ARG1_STEP, at);
    return at;
 }
+
+static inline
 size_t volume_parse_up
  (
    hausy_request *request,
@@ -47,6 +77,7 @@ size_t volume_parse_up
    return hausy_read_32(request, (uint32_t*) volume, VOLUME_CMD_UP_ARG1_STEP, 0);
 }
 
+static inline
 size_t volume_create_down
  (
    hausy_request *request,
@@ -60,6 +91,8 @@ size_t volume_create_down
    at = hausy_write_32(request, step, VOLUME_CMD_DOWN_ARG1_STEP, at);
    return at;
 }
+
+static inline
 size_t volume_parse_down
  (
    hausy_request *request,
@@ -69,6 +102,7 @@ size_t volume_parse_down
    return hausy_read_32(request, (uint32_t*) volume, VOLUME_CMD_DOWN_ARG1_STEP, 0);
 }
 
+static inline
 size_t volume_create_mute
  (
    hausy_request *request,
@@ -79,6 +113,7 @@ size_t volume_create_mute
    return hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_MUTE);
 }
 
+static inline
 size_t volume_create_unmute
  (
    hausy_request *request,
@@ -89,6 +124,7 @@ size_t volume_create_unmute
    return hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_UNMUTE);
 }
 
+static inline
 size_t volume_create_mute_toggle
  (
    hausy_request *request,
@@ -99,6 +135,7 @@ size_t volume_create_mute_toggle
    return hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_MUTE_TOGGLE);
 }
 
+static inline
 size_t volume_create_query
  (
    hausy_request *request,
@@ -109,4 +146,8 @@ size_t volume_create_query
    return hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_QUERY);
 }
 
-#endif // _HAUSY_PROTOCOL_VOLUME_C
+#ifdef __cplusplus
+}
+#endif
+
+#endif // _HAUSY_PROTOCOL_VOLUME_H
