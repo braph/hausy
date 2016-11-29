@@ -12,11 +12,11 @@ size_t volume_create_up
  )
 {
    if (request == NULL)
-      return hausy_create_command(NULL, 0, 0, 0, 0)
+      return hausy_create_request(NULL, 0, 0, 0, 0)
              + VOLUME_CMD_UP_ARG1_STEP;
 
    size_t at;
-   at = hausy_create_command(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_UP);
+   at = hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_UP);
    at = hausy_write_32(request, step, VOLUME_CMD_UP_ARG1_STEP, at);
    return at;
 }
@@ -48,11 +48,11 @@ size_t volume_create_down
  )
 {
    if (request == NULL)
-      return hausy_create_command(NULL, 0, 0, 0, 0)
+      return hausy_create_request(NULL, 0, 0, 0, 0)
              + VOLUME_CMD_DOWN_ARG1_STEP;
 
    size_t at;
-   at = hausy_create_command(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_DOWN);
+   at = hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_DOWN);
    at = hausy_write_32(request, step, VOLUME_CMD_DOWN_ARG1_STEP, at);
    return at;
 }
@@ -82,7 +82,7 @@ size_t volume_create_mute
    hausy_id unitID
  )
 {
-   return hausy_create_command(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_MUTE);
+   return hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_MUTE);
 }
 
 size_t volume_create_unmute
@@ -92,7 +92,7 @@ size_t volume_create_unmute
    hausy_id unitID
  )
 {
-   return hausy_create_command(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_UNMUTE);
+   return hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_UNMUTE);
 }
 
 size_t volume_create_mute_toggle
@@ -102,7 +102,7 @@ size_t volume_create_mute_toggle
    hausy_id unitID
  )
 {
-   return hausy_create_command(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_MUTE_TOGGLE);
+   return hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_MUTE_TOGGLE);
 }
 
 size_t volume_create_state_query
@@ -112,7 +112,7 @@ size_t volume_create_state_query
    hausy_id unitID
  )
 {
-   return hausy_create_command(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_STATE_QUERY);
+   return hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_STATE_QUERY);
 }
 
 #endif // _HAUSY_PROTOCOL_VOLUME_C
