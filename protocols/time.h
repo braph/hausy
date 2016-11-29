@@ -17,18 +17,23 @@
 extern "C" {
 #endif
 
+static inline
 size_t time_create_sync
  (
    hausy_request *request,
    uint32_t ts
  )
 {
-   size_t at;
-   at = hausy_create_request(request, TIME_PROTOCOL_ID, HAUSY_BROADCAST_ID, HAUSY_BROADCAST_ID, TIME_CMD_SYNC);
-   at = hausy_write_32(request, ts, TIME_CMD_SYNC_ARG1_TIMESTAMP, at);
-   return at;
+   size_t pos;
+
+   pos = hausy_create_request(request, TIME_PROTOCOL_ID, HAUSY_BROADCAST_ID, HAUSY_BROADCAST_ID, TIME_CMD_SYNC);
+   if (! pos)
+      return 0;
+
+   return hausy_write_32(request, ts, TIME_CMD_SYNC_ARG1_TIMESTAMP, pos);
 }
 
+static inline
 size_t time_parse_sync
  (
    hausy_request *request,
@@ -38,6 +43,7 @@ size_t time_parse_sync
    return hausy_read_32(request, ts, TIME_CMD_SYNC_ARG1_TIMESTAMP, 0);
 }
 
+static inline
 size_t time_create_state_query
  (
    hausy_request *request
