@@ -8,14 +8,14 @@
 
 #define VOLUME_PROTOCOL_ID              57 // 'V'
 
+#define VOLUME_CMD_SET                  54 // 'S'
+#define VOLUME_CMD_SET_ARG1_VOLUME      VOLUME_BIT_LENGTH
+
 #define VOLUME_CMD_UP                   56 // 'U'
 #define VOLUME_CMD_UP_ARG1_STEP         VOLUME_BIT_LENGTH
 
 #define VOLUME_CMD_DOWN                 39 // 'D'
 #define VOLUME_CMD_DOWN_ARG1_STEP       VOLUME_BIT_LENGTH
-
-#define VOLUME_CMD_SET                  54 // 'S'
-#define VOLUME_CMD_SET_ARG1_VOLUME      VOLUME_BIT_LENGTH
 
 #define VOLUME_CMD_MUTE                 48 // 'M'
 #define VOLUME_CMD_UNMUTE               22 // 'm'
@@ -26,6 +26,17 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+size_t volume_create_set(
+   hausy_request *request,
+   hausy_id systemID,
+   hausy_id unitID,
+   uint8_t step
+);
+size_t volume_parse_set(
+   hausy_request *request,
+   uint8_t *step
+);
 
 size_t volume_create_up(
    hausy_request *request,
