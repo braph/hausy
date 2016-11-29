@@ -36,10 +36,12 @@ size_t volume_create_set
    uint8_t volume
  )
 {
-   size_t at;
-   at = hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_SET);
-   at = hausy_write_32(request, volume, VOLUME_CMD_SET_ARG1_VOLUME, at);
-   return at;
+   size_t pos;
+   pos = hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_SET);
+   if (! pos)
+      return 0;
+
+   return hausy_write_32(request, volume, VOLUME_CMD_SET_ARG1_VOLUME, pos);
 }
 
 static inline
@@ -61,10 +63,12 @@ size_t volume_create_up
    uint8_t step
  )
 {
-   size_t at;
-   at = hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_UP);
-   at = hausy_write_32(request, step, VOLUME_CMD_UP_ARG1_STEP, at);
-   return at;
+   size_t pos;
+   pos = hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_UP);
+   if (! pos)
+      return 0;
+
+   return hausy_write_32(request, step, VOLUME_CMD_UP_ARG1_STEP, pos);
 }
 
 static inline
@@ -86,10 +90,12 @@ size_t volume_create_down
    uint8_t step
  )
 {
-   size_t at;
-   at = hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_DOWN);
-   at = hausy_write_32(request, step, VOLUME_CMD_DOWN_ARG1_STEP, at);
-   return at;
+   size_t pos;
+   pos = hausy_create_request(request, VOLUME_PROTOCOL_ID, systemID, unitID, VOLUME_CMD_DOWN);
+   if (! pos)
+      return 0;
+
+   return hausy_write_32(request, step, VOLUME_CMD_DOWN_ARG1_STEP, pos);
 }
 
 static inline
