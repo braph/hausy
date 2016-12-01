@@ -62,20 +62,20 @@ char *alphex_uitos(unsigned int i);
 unsigned int hausy_parse_id(const char *id);
 char *hausy_create_id(unsigned int id);
 
+/* Alternative to hausy_request_init() */
+#define HAUSY_REQUEST_INITIALIZER { .size = 0, .bufsize = 0, .data = NULL }
 void hausy_request_init(hausy_request *request);
-int  hausy_request_require_size(hausy_request *request, size_t size);
+size_t hausy_request_require_size(hausy_request *request, size_t size);
 int  hausy_request_fit(hausy_request *request);
 void hausy_request_free(hausy_request *request);
-int  hausy_request_copy(
+int  hausy_request_eqcmp(hausy_request *a, hausy_request *b);
+size_t hausy_request_copy(
    hausy_request *src,
    size_t src_start,
    size_t length,
    hausy_request *dest,
    size_t dest_start
 );
-
-int hausy_read_bit(hausy_request *request, size_t pos);
-void hausy_write_bit(hausy_request *request, size_t pos, int value);
 
 size_t hausy_read_32(
    hausy_request *request,
@@ -123,7 +123,7 @@ size_t hausy_parse_timings(
 /*
  * Return true if $pulse is a low pulse.
  */
-static inline
+static inline __attribute__((always_inline))
 int hausy_is_low_pulse(unsigned long pulse) {
    return (
       pulse <= ((unsigned long) HAUSY_PULSE_LOW + HAUSY_PULSE_TOLERANCE) &&
@@ -134,7 +134,7 @@ int hausy_is_low_pulse(unsigned long pulse) {
 /*
  * Return true if $pulse is a high pulse.
  */
-static inline
+static inline __attribute__((always_inline))
 int hausy_is_high_pulse(unsigned long pulse) {
    return (
       pulse <= ((unsigned long) HAUSY_PULSE_HIGH + HAUSY_PULSE_TOLERANCE) &&
@@ -145,7 +145,7 @@ int hausy_is_high_pulse(unsigned long pulse) {
 /*
  * Return true if $pulse is a footer pulse.
  */
-static inline
+static inline __attribute__((always_inline))
 int hausy_is_footer_pulse(unsigned long pulse) {
    return (
       pulse <= ((unsigned long) HAUSY_PULSE_FOOTER + HAUSY_FOOTER_TOLERANCE) &&
@@ -157,7 +157,7 @@ int hausy_is_footer_pulse(unsigned long pulse) {
  * Helper function for reading single bit of an integer.
  * Returns value of bit.
  */
-static inline
+static inline __attribute__((always_inline))
 int hw_bitRead(unsigned int n, int bit) {
    return ((n >> bit) & 1U);
 }
@@ -166,7 +166,7 @@ int hw_bitRead(unsigned int n, int bit) {
  * Helper function for setting single bit of an integer.
  * Returns new integer.
  */
-static inline
+static inline __attribute__((always_inline))
 unsigned int hw_bitSet(unsigned int n, int bit) {
    return (n | 1U << bit);
 }
@@ -175,7 +175,7 @@ unsigned int hw_bitSet(unsigned int n, int bit) {
  * Helper function for clearing single bit of an integer.
  * Returns new integer.
  */
-static inline
+static inline __attribute__((always_inline))
 unsigned int hw_bitClear(unsigned int n, int bit) {
    return (n & ~(1U << bit));
 }
@@ -184,21 +184,62 @@ unsigned int hw_bitClear(unsigned int n, int bit) {
  * Helper function for writing single bit of an integer.
  * Returns new integer.
  */
-static inline
+static inline __attribute__((always_inline))
 unsigned int hw_bitWrite(unsigned int n, int bit, int value) {
    if (value)
-      return hw_bitSet(n, bit);
+      return (n | 1U << bit);
    else
-      return hw_bitClear(n, bit);
-   //return (n ^ (-state ^ n) & (1U << bit)); TODO?
+      return (n & ~(1U << bit));
 }
 
 /*
  * Return the number of bytes that are needed to hold $size bits.
  */
-static inline
+static inline __attribute__((always_inline))
 size_t getBytesForBits(unsigned int size) {
    return (size / CHAR_BIT + !!(size % CHAR_BIT));
+}
+
+/*
+ * Return single bit inside $request.
+ * Note: There are no checks if the requested pos exceeds the buffer length.
+ */
+static inline __attribute__((always_inline))
+int hausy_read_bit
+ (
+   hausy_request *request,
+   size_t pos
+ )
+{
+   size_t byte_pos = pos / (CHAR_BIT * sizeof(hausy_bitstorage));
+   size_t bit_pos  = pos % (CHAR_BIT * sizeof(hausy_bitstorage));
+
+   return hw_bitRead(
+      request->data[byte_pos],
+      bit_pos
+   );
+}
+
+/*
+ * Write single bit inside $request.
+ * Note: there are no checks if the requested pos exceeds the buffer length.
+ */
+static inline __attribute__((always_inline))
+void hausy_write_bit
+ (
+   hausy_request *request,
+   size_t pos,
+   int value
+ )
+{
+   size_t byte_pos = pos / (CHAR_BIT * sizeof(hausy_bitstorage));
+   size_t bit_pos  = pos % (CHAR_BIT * sizeof(hausy_bitstorage));
+
+   request->data[byte_pos] = hw_bitWrite(
+      request->data[byte_pos],
+      bit_pos,
+      value 
+   );
 }
 
 #ifdef __cplusplus

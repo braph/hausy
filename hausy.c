@@ -49,7 +49,7 @@ void hausy_request_init
  * On failure:
  *    Return 0
  */
-int hausy_request_require_size
+size_t hausy_request_require_size
  (
    hausy_request *request,
    size_t size
@@ -76,6 +76,13 @@ int hausy_request_require_size
 
 /*
  * Truncate the buffer in $request to minimum size.
+ *
+ * On success:
+ *    Return 1
+ *
+ * On error:
+ *    Return 0, request won't be modified
+ *
  */
 int hausy_request_fit
  (
@@ -130,7 +137,7 @@ void hausy_request_free
  * On failure:
  *    Return 0
  */
-int hausy_request_copy
+size_t hausy_request_copy
  (
    hausy_request *src,
    size_t src_start,
@@ -169,43 +176,23 @@ int hausy_request_copy
 }
 
 /*
- * Return single bit inside $request.
- * Note: There are no checks if the requested pos exceeds the buffer length.
+ * Check if hausy requests are equal.
+ * Returns 1 if equal, 0 if not.
  */
-int hausy_read_bit
+int hausy_request_eqcmp
  (
-   hausy_request *request,
-   size_t pos
+   hausy_request *a,
+   hausy_request *b
  )
 {
-   size_t byte_pos = pos / (CHAR_BIT * sizeof(hausy_bitstorage));
-   size_t bit_pos  = pos % (CHAR_BIT * sizeof(hausy_bitstorage));
+   if (a->size != b->size)
+      return 0;
 
-   return hw_bitRead(
-      request->data[byte_pos],
-      bit_pos
-   );
-}
+   for (int i = a->size; i--;)
+      if (hausy_read_bit(a, i) != hausy_read_bit(b, i))
+         return 0;
 
-/*
- * Write single bit inside $request.
- * Note: there are no checks if the requested pos exceeds the buffer length.
- */
-void hausy_write_bit
- (
-   hausy_request *request,
-   size_t pos,
-   int value
- )
-{
-   size_t byte_pos = pos / (CHAR_BIT * sizeof(hausy_bitstorage));
-   size_t bit_pos  = pos % (CHAR_BIT * sizeof(hausy_bitstorage));
-
-   request->data[byte_pos] = hw_bitWrite(
-      request->data[byte_pos],
-      bit_pos,
-      value 
-   );
+   return 1;
 }
 
 /* 
@@ -375,8 +362,8 @@ size_t hausy_parse_request
    if (request->size < (HAUSY_ID_BITLENGTH * 4))
       return 0;
 
-   size_t pos = 0;
-   pos = hausy_read_32(request, (uint32_t*) protocolID, HAUSY_ID_BITLENGTH, pos);
+   size_t pos;
+   pos = hausy_read_32(request, (uint32_t*) protocolID, HAUSY_ID_BITLENGTH, 0);
    pos = hausy_read_32(request, (uint32_t*) systemID,   HAUSY_ID_BITLENGTH, pos);
    pos = hausy_read_32(request, (uint32_t*) unitID,     HAUSY_ID_BITLENGTH, pos);
    pos = hausy_read_32(request, (uint32_t*) cmdID,      HAUSY_ID_BITLENGTH, pos);
@@ -402,17 +389,18 @@ size_t hausy_create_request
    hausy_id cmdID
  )
 {
+   int pos;
+
    if (request == NULL)
       return (HAUSY_ID_BITLENGTH * 4);
 
-   hausy_request_require_size(request, HAUSY_ID_BITLENGTH * 4);
+   if (! hausy_request_require_size(request, HAUSY_ID_BITLENGTH * 4))
+      return 0;
 
-   int pos = 0;
-   pos = hausy_write_32(request, protocolID, HAUSY_ID_BITLENGTH, pos);
-   pos = hausy_write_32(request, systemID,   HAUSY_ID_BITLENGTH, pos);
-   pos = hausy_write_32(request, unitID,     HAUSY_ID_BITLENGTH, pos);
-   pos = hausy_write_32(request, cmdID,      HAUSY_ID_BITLENGTH, pos);
-   return pos;
+   pos = hausy_write_32(request, protocolID, HAUSY_ID_BITLENGTH, 0);
+   pos = hausy_write_32(request, systemID, HAUSY_ID_BITLENGTH, pos);
+   pos = hausy_write_32(request, unitID, HAUSY_ID_BITLENGTH, pos);
+   return hausy_write_32(request, cmdID, HAUSY_ID_BITLENGTH, pos);
 }
 
 /*
