@@ -48,10 +48,11 @@ static inline
 size_t volume_parse_set
  (
    hausy_request *request,
+   size_t pos,
    uint8_t *volume
  )
 {
-   return hausy_read_32(request, (uint32_t*) volume, VOLUME_CMD_SET_ARG1_VOLUME, 0);
+   return hausy_read_32(request, (uint32_t*) volume, VOLUME_CMD_SET_ARG1_VOLUME, pos);
 }
 
 static inline
@@ -75,10 +76,11 @@ static inline
 size_t volume_parse_up
  (
    hausy_request *request,
+   size_t pos,
    uint8_t *volume
  )
 {
-   return hausy_read_32(request, (uint32_t*) volume, VOLUME_CMD_UP_ARG1_STEP, 0);
+   return hausy_read_32(request, (uint32_t*) volume, VOLUME_CMD_UP_ARG1_STEP, pos);
 }
 
 static inline
@@ -102,10 +104,11 @@ static inline
 size_t volume_parse_down
  (
    hausy_request *request,
+   size_t pos,
    uint8_t *volume
  )
 {
-   return hausy_read_32(request, (uint32_t*) volume, VOLUME_CMD_DOWN_ARG1_STEP, 0);
+   return hausy_read_32(request, (uint32_t*) volume, VOLUME_CMD_DOWN_ARG1_STEP, pos);
 }
 
 static inline
