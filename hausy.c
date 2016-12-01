@@ -341,11 +341,9 @@ size_t hausy_create_timings
 
 /*
  * Helper function for parsing an incoming command.
- * The identifiers are saved to the variables and the extracted data
- * will be stripped from the request.
  *
  * On success:
- *    Returns 1.
+ *    Returns position for next read.
  *
  * On failure:
  *    Returns 0.
@@ -363,16 +361,10 @@ size_t hausy_parse_request
       return 0;
 
    size_t pos;
-   pos = hausy_read_32(request, (uint32_t*) protocolID, HAUSY_ID_BITLENGTH, 0);
-   pos = hausy_read_32(request, (uint32_t*) systemID,   HAUSY_ID_BITLENGTH, pos);
-   pos = hausy_read_32(request, (uint32_t*) unitID,     HAUSY_ID_BITLENGTH, pos);
-   pos = hausy_read_32(request, (uint32_t*) cmdID,      HAUSY_ID_BITLENGTH, pos);
-
-   hausy_request_copy(request, pos, 0, request, 0);
-   request->size = request->size - pos;
-   hausy_request_fit(request);
-
-   return 1;
+   pos =  hausy_read_32(request, (uint32_t*) protocolID, HAUSY_ID_BITLENGTH, 0);
+   pos =  hausy_read_32(request, (uint32_t*) systemID,   HAUSY_ID_BITLENGTH, pos);
+   pos =  hausy_read_32(request, (uint32_t*) unitID,     HAUSY_ID_BITLENGTH, pos);
+   return hausy_read_32(request, (uint32_t*) cmdID,      HAUSY_ID_BITLENGTH, pos);
 }
 
 /*
