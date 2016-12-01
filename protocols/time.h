@@ -21,7 +21,7 @@ static inline
 size_t time_create_sync
  (
    hausy_request *request,
-   uint32_t ts
+   uint32_t timestap
  )
 {
    size_t pos;
@@ -30,17 +30,18 @@ size_t time_create_sync
    if (! pos)
       return 0;
 
-   return hausy_write_32(request, ts, TIME_CMD_SYNC_ARG1_TIMESTAMP, pos);
+   return hausy_write_32(request, timestamp, TIME_CMD_SYNC_ARG1_TIMESTAMP, pos);
 }
 
 static inline
 size_t time_parse_sync
  (
    hausy_request *request,
-   uint32_t *ts
+   size_t pos,
+   uint32_t *timestamp
  )
 {
-   return hausy_read_32(request, ts, TIME_CMD_SYNC_ARG1_TIMESTAMP, 0);
+   return hausy_read_32(request, timestamp, TIME_CMD_SYNC_ARG1_TIMESTAMP, pos);
 }
 
 static inline
