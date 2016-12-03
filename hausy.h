@@ -43,16 +43,15 @@ extern "C" {
 #define HAUSY_ID_MAX                ((1 << HAUSY_ID_BITLENGTH) - 1)
 #define HAUSY_BOOL_BITLENGTH        1
 
-typedef unsigned char hausy_id;
-typedef unsigned char hausy_bool;
-typedef unsigned char hausy_bitstorage;
+typedef uint8_t hausy_id;
+typedef uint8_t hausy_bool;
+typedef uint8_t hausy_bitstorage;
 
-struct hausy_request {
+typedef struct hausy_request {
    uint16_t size;    /* holds the request size of data */
    uint8_t bufsize;  /* holds the number of hausy_bitstorage fields */
    hausy_bitstorage *data;
-};
-typedef struct hausy_request hausy_request;
+} hausy_request;
 
 unsigned int alphex_ctoui(char c);
 unsigned int alphex_stoui(const char *alphex);
@@ -66,9 +65,10 @@ char *hausy_create_id(unsigned int id);
 #define HAUSY_REQUEST_INITIALIZER { .size = 0, .bufsize = 0, .data = NULL }
 void hausy_request_init(hausy_request *request);
 size_t hausy_request_require_size(hausy_request *request, size_t size);
-int  hausy_request_fit(hausy_request *request);
+int hausy_request_fit(hausy_request *request);
 void hausy_request_free(hausy_request *request);
-int  hausy_request_eqcmp(hausy_request *a, hausy_request *b);
+int hausy_request_eqcmp(hausy_request *a, hausy_request *b);
+
 size_t hausy_request_copy(
    hausy_request *src,
    size_t src_start,
@@ -215,6 +215,46 @@ int hausy_read_bit
    size_t bit_pos  = pos % (CHAR_BIT * sizeof(hausy_bitstorage));
 
    return hw_bitRead(
+      request->data[byte_pos],
+      bit_pos
+   );
+}
+
+/*
+ * Set single bit to 1 inside $request.
+ * Note: there are no checks if the requested pos exceeds the buffer length.
+ */
+static inline __attribute__((always_inline))
+void hausy_set_bit
+ (
+   hausy_request *request,
+   size_t pos
+ )
+{
+   size_t byte_pos = pos / (CHAR_BIT * sizeof(hausy_bitstorage));
+   size_t bit_pos  = pos % (CHAR_BIT * sizeof(hausy_bitstorage));
+
+   request->data[byte_pos] = hw_bitSet(
+      request->data[byte_pos],
+      bit_pos
+   );
+}
+
+/*
+ * Set single bit to 0 inside $request.
+ * Note: there are no checks if the requested pos exceeds the buffer length.
+ */
+static inline __attribute__((always_inline))
+void hausy_clear_bit
+ (
+   hausy_request *request,
+   size_t pos
+ )
+{
+   size_t byte_pos = pos / (CHAR_BIT * sizeof(hausy_bitstorage));
+   size_t bit_pos  = pos % (CHAR_BIT * sizeof(hausy_bitstorage));
+
+   request->data[byte_pos] = hw_bitClear(
       request->data[byte_pos],
       bit_pos
    );
