@@ -273,9 +273,6 @@ size_t hausy_parse_timings
    if (timings_size % 2) // hausy requests are always of even length
       return 0;
 
-   if (! hausy_is_high_pulse(get_timings(timings_size - 2, get_timings_data)))
-      return 0;
-
    if (! hausy_is_footer_pulse(get_timings(timings_size - 1, get_timings_data)))
       return 0;
 
@@ -283,18 +280,33 @@ size_t hausy_parse_timings
       return 0;
 
    size_t i;
+   uint8_t parity = 0;
    for (i = 0; i < (timings_size - 2); i += 2) {
       unsigned long p1 = get_timings(i + 0, get_timings_data);
       unsigned long p2 = get_timings(i + 1, get_timings_data);
 
       if (hausy_is_high_pulse(p1) && hausy_is_low_pulse(p2)) {
-         hausy_write_bit(request, i/2, 1);
+         hausy_set_bit(request, i/2);
+         ++parity;
       }
       else if (hausy_is_low_pulse(p1) && hausy_is_high_pulse(p2)) {
-         hausy_write_bit(request, i/2, 0);
+         hausy_clear_bit(request, i/2);
       }
       else {
          hausy_request_free(request);
+         return 0;
+      }
+   }
+
+   if (parity % 2 == 0) {
+      if (! hausy_is_low_pulse(get_timings(timings_size - 2, get_timings_data))) {
+         hausy_free_request(request);
+         return 0;
+      }
+   }
+   else {
+      if (! hausy_is_high_pulse(get_timings(timings_size - 2, get_timings_data))) {
+         hausy_free_request(request);
          return 0;
       }
    }
@@ -323,8 +335,10 @@ size_t hausy_create_timings
       return (request->size * 2 + 2);
 
    size_t i;
+   uint8_t parity = 0;
    for (i = 0; i < request->size; ++i) {
       if (hausy_read_bit(request, i)) {
+         ++parity;
          set_timings( ((1+i) * 2 - 2), HAUSY_PULSE_HIGH, set_timings_data );
          set_timings( ((1+i) * 2 - 1), HAUSY_PULSE_LOW,  set_timings_data );
       } else {
@@ -333,7 +347,12 @@ size_t hausy_create_timings
       }
    }
 
-   set_timings( (request->size * 2 + 0), HAUSY_PULSE_HIGH,   set_timings_data );
+   if (parity % 2 == 0) {
+      set_timings( (request->size * 2 + 0), HAUSY_PULSE_LOW, set_timings_data );
+   } else {
+      set_timings( (request->size * 2 + 0), HAUSY_PULSE_HIGH, set_timings_data );
+   }
+
    set_timings( (request->size * 2 + 1), HAUSY_PULSE_FOOTER, set_timings_data );
 
    return (request->size * 2 + 2);
