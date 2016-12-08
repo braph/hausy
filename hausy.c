@@ -22,8 +22,8 @@
  * This is used to address the inability of arduino-mk to compile and link
  * source files in subdirectories.
  */
-#ifndef _HAUSY_CPP
-#define _HAUSY_CPP
+#ifndef _HAUSY_C
+#define _HAUSY_C
 
 #include "hausy.h"
 
@@ -531,4 +531,4 @@ char *alphex_uitos(unsigned int i) {
    return result;
 }
 
-#endif // _HAUSY_CPP
+#endif // _HAUSY_C
